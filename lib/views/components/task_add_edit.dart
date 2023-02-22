@@ -52,7 +52,7 @@ class _TaskAddEditState extends State<TaskAddEdit> {
             CustomTextField(
               hintText: "Task description",
               controller: taskDescriptionController,
-              maxLines: 4,
+              maxLines: 2,
               required: false,
             ),
           ],
