@@ -4,13 +4,14 @@ import 'package:boardview/boardview.dart';
 import 'package:boardview/boardview_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jiffy/jiffy.dart';
 import 'package:get/get.dart';
 import 'package:kanban_board_app/controllers/board_controller.dart';
 import 'package:kanban_board_app/views/components/column_add_edit.dart';
+import 'package:kanban_board_app/views/components/delete_dialog.dart';
 import 'package:kanban_board_app/views/components/task_add_edit.dart';
 import 'package:kanban_board_app/views/widgets/custom_app_bar.dart';
 import 'package:kanban_board_app/views/widgets/custom_drawer.dart';
+import 'package:kanban_board_app/views/widgets/custom_icon_button.dart';
 import 'package:kanban_board_app/views/widgets/task_card.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -67,13 +68,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               scrollbar: true,
               lists: boardController.columnList
                   .map((col) => BoardList(
-                        onStartDragList: (int? listIndex) {},
-                        onTapList: (int? listIndex) async {},
+                        // onStartDragList: (int? listIndex) {},
+                        // onTapList: (int? listIndex) async {},
                         onDropList: (int? listIndex, int? oldListIndex) {
-                          //Update our local list data
-                          var list = boardController.columnList[oldListIndex!];
-                          boardController.columnList.removeAt(oldListIndex);
-                          boardController.columnList.insert(listIndex!, list);
+                          boardController.updateColumnPosition(
+                              listIndex: listIndex, oldListIndex: oldListIndex);
                         },
                         headerBackgroundColor:
                             Get.theme.primaryColor.withOpacity(0.15),
@@ -88,90 +87,94 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     // overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(fontSize: 20),
                                   ))),
-                          IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return TaskAddEdit(column: col);
-                                  },
-                                );
-                              },
-                              color: Colors.green,
-                              icon: const Icon(Icons.add)),
-                          IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return ColumnAddEdit(
-                                      column: col,
-                                    );
-                                  },
-                                );
-                              },
-                              color: Colors.blue,
-                              icon: const Icon(Icons.edit)),
-                          IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Are you sure?'),
-                                      content: const Text(
-                                          "The column will be deleted forever."),
-                                      actions: [
-                                        IconButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          icon: const Icon(Icons.close),
-                                          color: Colors.red,
-                                        ),
-                                        IconButton(
-                                          onPressed: () async {
-                                            await boardController
-                                                .deleteColumn(col.id!);
-                                            Navigator.pop(context);
-                                          },
-                                          icon: const Icon(Icons.check),
-                                          color: Colors.green,
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                              color: Colors.red,
-                              icon: const Icon(Icons.delete_forever)),
+                          CustomIconButton(
+                            icon: Icons.add,
+                            height: 30,
+                            width: 30,
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return TaskAddEdit(column: col);
+                                },
+                              );
+                            },
+                          ),
+                          CustomIconButton(
+                            icon: Icons.edit,
+                            height: 30,
+                            width: 30,
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return ColumnAddEdit(
+                                    column: col,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          CustomIconButton(
+                            icon: Icons.delete_forever,
+                            height: 30,
+                            width: 30,
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return DeleteDialog(
+                                    title:
+                                        "This column will deleted forever including tasks.",
+                                    onSuccess: () async {
+                                      await boardController
+                                          .deleteColumn(col.id!);
+                                      Navigator.pop(context);
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          ),
                         ],
                         items: col.tasks
                             ?.map<BoardItem>((task) => BoardItem(
-                                onStartDragItem: (int? listIndex,
-                                    int? itemIndex, BoardItemState? state) {},
+                                // onStartDragItem: (int? listIndex,
+                                //     int? itemIndex, BoardItemState? state) {},
+                                // onTapItem: (int? listIndex, int? itemIndex,
+                                //     BoardItemState? state) async {},
                                 onDropItem: (int? listIndex,
                                     int? itemIndex,
                                     int? oldListIndex,
                                     int? oldItemIndex,
                                     BoardItemState? state) {
-                                  //Used to update our local item data
-                                  var item = boardController
-                                      .columnList[oldListIndex!]
-                                      .tasks![oldItemIndex!];
-                                  boardController
-                                      .columnList[oldListIndex].tasks!
-                                      .removeAt(oldItemIndex);
-                                  boardController.columnList[listIndex!].tasks!
-                                      .insert(itemIndex!, item);
+                                  boardController.updateTaskPosition(
+                                      itemIndex: itemIndex,
+                                      listIndex: listIndex,
+                                      oldItemIndex: oldItemIndex,
+                                      oldListIndex: oldListIndex);
                                 },
-                                onTapItem: (int? listIndex, int? itemIndex,
-                                    BoardItemState? state) async {},
                                 item: TaskCard(
                                   col: col,
                                   task: task,
                                 )))
                             .toList(),
+                        footer: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CustomIconButton(
+                            icon: Icons.add,
+                            height: 30,
+                            width: 30,
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return TaskAddEdit(column: col);
+                                },
+                              );
+                            },
+                          ),
+                        ),
                       ))
                   .toList(),
               boardViewController: boardViewController,

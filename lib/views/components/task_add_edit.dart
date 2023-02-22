@@ -53,7 +53,7 @@ class _TaskAddEditState extends State<TaskAddEdit> {
               hintText: "Task description",
               controller: taskDescriptionController,
               maxLines: 4,
-              required: true,
+              required: false,
             ),
           ],
         ),

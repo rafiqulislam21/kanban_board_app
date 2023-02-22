@@ -6,6 +6,7 @@ import 'package:kanban_board_app/utils/local_storage_utils.dart';
 
 class BoardController extends GetxController {
   final columnList = <BoardModel>[].obs;
+  final String dbName = "columns";
 
   @override
   void onInit() {
@@ -27,11 +28,10 @@ class BoardController extends GetxController {
       columnJson.add(item.toJson());
     }
 
-    LocalStorageUtil.write("columns", jsonEncode(columnJson));
+    LocalStorageUtil.write(dbName, jsonEncode(columnJson));
 
     columnList.refresh();
   }
-
   Future editColumn({required String title, required BoardModel column}) async {
     // updating values
     column.title = title;
@@ -40,80 +40,21 @@ class BoardController extends GetxController {
     for (BoardModel item in columnList) {
       columnJson.add(item.toJson());
     }
-    LocalStorageUtil.write("columns", jsonEncode(columnJson));
+    LocalStorageUtil.write(dbName, jsonEncode(columnJson));
     //
     columnList.refresh();
   }
-
   Future getColumns() async {
-    var columnsStr = await LocalStorageUtil.read("columns");
+    var columnsStr = await LocalStorageUtil.read(dbName);
     List columns = jsonDecode(columnsStr ?? "[]");
     print(columns);
-    // List _listData = [
-    //   {
-    //     "id": 1,
-    //     "title": "Todo",
-    //     "tasks": [
-    //       {
-    //         "id": 1,
-    //         "title": "task-1",
-    //         "description": "task details here",
-    //         "created_at": "2.2.2022",
-    //         "updated_at": "2.2.2022",
-    //         "completed_at": "3.3.2022",
-    //         "duration": "5 days",
-    //       },
-    //       {
-    //         "id": 2,
-    //         "title": "task-1",
-    //         "description": "task details here",
-    //         "created_at": "2.2.2022",
-    //         "updated_at": "2.2.2022",
-    //         "completed_at": "3.3.2022",
-    //         "duration": "5 days",
-    //       },
-    //     ]
-    //   },
-    //   {
-    //     "id": 2,
-    //     "title": "In Progress",
-    //     "tasks": [
-    //       {
-    //         "id": 1,
-    //         "title": "task-1",
-    //         "description": "task details here",
-    //         "created_at": "2.2.2022",
-    //         "updated_at": "2.2.2022",
-    //         "completed_at": "3.3.2022",
-    //         "duration": "5 days",
-    //       },
-    //     ]
-    //   },
-    //   {
-    //     "id": 3,
-    //     "title": "Done",
-    //     "tasks": [
-    //       {
-    //         "id": 1,
-    //         "title": "task-1",
-    //         "description": "task details here",
-    //         "created_at": "2.2.2022",
-    //         "updated_at": "2.2.2022",
-    //         "completed_at": "3.3.2022",
-    //         "duration": "5 days",
-    //       },
-    //     ]
-    //   }
-    // ];
-    //
     for (var item in columns) {
       columnList.add(BoardModel.fromJson(item));
     }
   }
-
   Future deleteColumn(int id) async {
     columnList.removeWhere((element) => element.id == id);
-    LocalStorageUtil.write("columns", jsonEncode(columnList));
+    LocalStorageUtil.write(dbName, jsonEncode(columnList));
   }
 
   Future addTask(
@@ -136,11 +77,10 @@ class BoardController extends GetxController {
       columnJson.add(item.toJson());
     }
 
-    LocalStorageUtil.write("columns", jsonEncode(columnJson));
+    LocalStorageUtil.write(dbName, jsonEncode(columnJson));
 
     columnList.refresh();
   }
-
   Future editTask(
       {required String title,
       required String description,
@@ -156,8 +96,62 @@ class BoardController extends GetxController {
       columnJson.add(item.toJson());
     }
 
-    LocalStorageUtil.write("columns", jsonEncode(columnJson));
+    LocalStorageUtil.write(dbName, jsonEncode(columnJson));
 
+    columnList.refresh();
+  }
+  Future deleteTask({required int columnId, required int taskId}) async {
+    columnList.firstWhere((col) => col.id == columnId).tasks?.removeWhere((element) => element.id == taskId);
+    LocalStorageUtil.write(dbName, jsonEncode(columnList));
+    columnList.refresh();
+  }
+  Future completeTask({required Tasks task}) async {
+    DateTime currentTime = DateTime.now();
+    //update
+    task.completedAt = currentTime.toString();
+
+    List columnJson = [];
+    for (BoardModel item in columnList) {
+      columnJson.add(item.toJson());
+    }
+
+    LocalStorageUtil.write(dbName, jsonEncode(columnJson));
+
+    columnList.refresh();
+  }
+
+  Future updateColumnPosition({int? listIndex, int? oldListIndex}) async {
+    //Update our local list data
+    var list = columnList[oldListIndex!];
+    columnList.removeAt(oldListIndex);
+    columnList.insert(listIndex!, list);
+
+    List columnJson = [];
+    for (BoardModel item in columnList) {
+      columnJson.add(item.toJson());
+    }
+
+    LocalStorageUtil.write(dbName, jsonEncode(columnJson));
+    columnList.refresh();
+  }
+  Future updateTaskPosition({int? listIndex,
+    int? itemIndex,
+    int? oldListIndex,
+    int? oldItemIndex}) async {
+    //Used to update our local item data
+    var item = columnList[oldListIndex!]
+        .tasks![oldItemIndex!];
+    columnList[oldListIndex].tasks!
+        .removeAt(oldItemIndex);
+    columnList[listIndex!].tasks!
+        .insert(itemIndex!, item);
+
+    List columnJson = [];
+    for (BoardModel item in columnList) {
+      columnJson.add(item.toJson());
+    }
+
+    LocalStorageUtil.write(dbName, jsonEncode(columnJson));
     columnList.refresh();
   }
 }

@@ -1,11 +1,17 @@
+import 'dart:math';
+
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:kanban_board_app/controllers/board_controller.dart';
 import 'package:kanban_board_app/models/board_model.dart';
+import 'package:kanban_board_app/utils/helper.dart';
+import 'package:kanban_board_app/views/components/delete_dialog.dart';
 import 'package:kanban_board_app/views/components/task_add_edit.dart';
+import 'package:kanban_board_app/views/widgets/custom_icon_button.dart';
 
-class TaskCard extends StatelessWidget {
+class TaskCard extends StatefulWidget {
   TaskCard({
     super.key,
     required this.col,
@@ -14,90 +20,131 @@ class TaskCard extends StatelessWidget {
 
   final BoardModel col;
   final Tasks task;
+
+  @override
+  State<TaskCard> createState() => _TaskCardState();
+}
+
+class _TaskCardState extends State<TaskCard> {
   final BoardController boardController = Get.find();
+  late ConfettiController _controllerCenter;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllerCenter =
+        ConfettiController(duration: const Duration(seconds: 2));
+  }
+
+  @override
+  void dispose() {
+    _controllerCenter.dispose();
+    super.dispose();
+  }
+
+  /// A custom Path to paint stars.
+  Path drawStar(Size size) {
+    // Method to convert degree to radians
+    double degToRad(double deg) => deg * (pi / 180.0);
+
+    const numberOfPoints = 5;
+    final halfWidth = size.width / 2;
+    final externalRadius = halfWidth;
+    final internalRadius = halfWidth / 2.5;
+    final degreesPerStep = degToRad(360 / numberOfPoints);
+    final halfDegreesPerStep = degreesPerStep / 2;
+    final path = Path();
+    final fullAngle = degToRad(360);
+    path.moveTo(size.width, halfWidth);
+
+    for (double step = 0; step < fullAngle; step += degreesPerStep) {
+      path.lineTo(halfWidth + externalRadius * cos(step),
+          halfWidth + externalRadius * sin(step));
+      path.lineTo(halfWidth + internalRadius * cos(step + halfDegreesPerStep),
+          halfWidth + internalRadius * sin(step + halfDegreesPerStep));
+    }
+    path.close();
+    return path;
+  }
 
   @override
   Widget build(BuildContext context) {
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Align(
+              alignment: Alignment.center,
+              child: ConfettiWidget(
+                confettiController: _controllerCenter,
+                blastDirectionality: BlastDirectionality
+                    .explosive,
+                shouldLoop:
+                false,
+                numberOfParticles: 5,
+                createParticlePath: drawStar, // define a custom shape/path.
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Flexible(
                     child: Text(
-                  task.title!,
+                  widget.task.title!,
                   style: const TextStyle(fontSize: 18),
                 )),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(0.0),
-                      width: 20.0,
-                      child: IconButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return TaskAddEdit(column: col, task: task,);
-                              },
-                            );
-                          },
-                          padding: const EdgeInsets.all(0),
-                          iconSize: 16,
-                          color: Colors.blue,
-                          icon: const Icon(Icons.edit)),
+                    CustomIconButton(
+                      icon: Icons.done_all_rounded,
+                      color: widget.task.completedAt == null ? Colors.grey : Colors.green,
+                      onPressed: () {
+                        _controllerCenter.play();
+                        boardController.completeTask(task: widget.task);
+                      },
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(0.0),
-                      width: 20.0,
-                      child: IconButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Are you sure?'),
-                                  content: const Text(
-                                      "The column will be deleted forever."),
-                                  actions: [
-                                    IconButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      icon: const Icon(Icons.close),
-                                      color: Colors.red,
-                                    ),
-                                    IconButton(
-                                      onPressed: () async {
-                                        // await boardController
-                                        //     .deleteColumn(col.id!);
-                                        // Navigator.pop(context);
-                                      },
-                                      icon: const Icon(Icons.check),
-                                      color: Colors.green,
-                                    ),
-                                  ],
-                                );
-                              },
+                    CustomIconButton(
+                      icon: Icons.edit,
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return TaskAddEdit(
+                              column: widget.col,
+                              task: widget.task,
                             );
                           },
-                          padding: const EdgeInsets.all(0),
-                          iconSize: 16,
-                          color: Colors.red,
-                          icon: const Icon(Icons.delete_forever)),
+                        );
+                      },
+                    ),
+                    CustomIconButton(
+                      icon: Icons.delete_forever,
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return DeleteDialog(
+                                title: "This task will deleted forever.",
+                                onSuccess: () async {
+                                  await boardController
+                                      .deleteTask(columnId: widget.col.id!,taskId: widget.task.id!);
+                                  Navigator.pop(context);
+                                },
+                              );
+                            });
+                      },
                     ),
                   ],
                 )
               ],
             ),
             Text(
-              task.description!,
+              widget.task.description!,
               style: const TextStyle(color: Colors.grey),
             ),
             const Divider(
@@ -116,7 +163,7 @@ class TaskCard extends StatelessWidget {
                       ),
                       Flexible(
                           child: Text(
-                        " ${Jiffy(task.createdAt).fromNow()}",
+                        " ${Jiffy(widget.task.createdAt).fromNow()}",
                         style:
                             const TextStyle(fontSize: 10, color: Colors.grey),
                       )),
@@ -134,7 +181,7 @@ class TaskCard extends StatelessWidget {
                       ),
                       Flexible(
                           child: Text(
-                        " ${Jiffy(task.createdAt).fromNow()}",
+                        " ${Jiffy(widget.task.updatedAt).fromNow()}",
                         style:
                             const TextStyle(fontSize: 10, color: Colors.grey),
                       )),
@@ -146,7 +193,7 @@ class TaskCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                task.duration == null
+                widget.task.completedAt == null
                     ? const SizedBox()
                     : Expanded(
                         child: Row(
@@ -158,14 +205,14 @@ class TaskCard extends StatelessWidget {
                             ),
                             Flexible(
                                 child: Text(
-                              " ${task.duration ?? "-"}",
+                              " ${Helper.timeDifference(start: widget.task.createdAt, end: widget.task.completedAt)}",
                               style: const TextStyle(
                                   fontSize: 10, color: Colors.grey),
                             )),
                           ],
                         ),
                       ),
-                task.duration == null
+                widget.task.completedAt == null
                     ? const SizedBox()
                     : Expanded(
                         child: Row(
@@ -178,7 +225,7 @@ class TaskCard extends StatelessWidget {
                             ),
                             Flexible(
                                 child: Text(
-                              " ${Jiffy(task.completedAt).fromNow()}",
+                              " ${Jiffy(widget.task.completedAt).fromNow()}",
                               style: const TextStyle(
                                   fontSize: 10, color: Colors.grey),
                             )),

@@ -18,7 +18,6 @@ class CustomDrawer extends StatelessWidget {
         return const Icon(Icons.light_mode);
       },
     );
-    final dataKey = GlobalKey();
 
     return Drawer(
       child: ListView(
@@ -26,25 +25,25 @@ class CustomDrawer extends StatelessWidget {
         children: [
           DrawerHeader(
               decoration: BoxDecoration(
-                color: Get.theme.primaryColor.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
               ),
-              child: Text("klsdkf"),),
+              child: const Text("Kanban Board", style: TextStyle(fontSize: 30,),textAlign: TextAlign.center,),),
           Card(
             color: Get.theme.cardColor,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
-              child: Text("সেটিংস"),
+              child: Text("Settings"),
             ),
           ),
           ListTile(
-              title: const Text('থিম পরিবর্তন করুন'),
+              title: const Text('Theme change'),
               trailing: Switch(
                 thumbIcon: thumbIcon,
                 value: ThemeService().loadThemeFromBox(),
                 onChanged: (val) {
                   ThemeService().switchTheme();
                 },
-                activeColor: Theme.of(context).colorScheme.secondary,
+                activeColor: Theme.of(context).colorScheme.primary,
               )),
           const SizedBox(
             height: 5,

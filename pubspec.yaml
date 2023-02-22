@@ -39,6 +39,7 @@ dependencies:
   get_storage: ^2.0.2
   jiffy: ^5.0.0
   boardview: ^0.2.2
+  confetti: ^0.7.0
 
 dev_dependencies:
   flutter_test:

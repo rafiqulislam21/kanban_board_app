@@ -34,7 +34,6 @@ class Tasks {
   String? createdAt;
   String? updatedAt;
   String? completedAt;
-  String? duration;
 
   Tasks(
       {this.id,
@@ -43,7 +42,7 @@ class Tasks {
         this.createdAt,
         this.updatedAt,
         this.completedAt,
-        this.duration});
+      });
 
   Tasks.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -52,7 +51,6 @@ class Tasks {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     completedAt = json['completed_at'];
-    duration = json['duration'];
   }
 
   Map<String, dynamic> toJson() {
@@ -63,7 +61,6 @@ class Tasks {
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;
     data['completed_at'] = this.completedAt;
-    data['duration'] = this.duration;
     return data;
   }
 }
