@@ -43,12 +43,9 @@ $flutter build apk
 -----
 - Theme: In the app bar there is a switch, using that switch user can use light/dark mode.
 
-<div style="height:100px">
-  ![](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/light.jpg)
-  </div>
-  <div style="height:100px">
-  ![](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/dark.jpg)
- </div>
+<!--   ![](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/light.jpg)
+  ![](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/dark.jpg) -->
+
 There is a demo [here](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/ezgif.com-video-to-gif.gif) on how to use it.
 
 ![](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/ezgif.com-video-to-gif.gif)
