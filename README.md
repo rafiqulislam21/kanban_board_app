@@ -42,8 +42,8 @@ $flutter build apk
 - Export task list to CSV file: For every column, there is an individual CSV export option.
 -----
 - Theme: In the app bar there is a switch, using that switch user can use light/dark mode.
-  ![](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/light.jpg)
-  ![](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/dark.jpg)
+  ![](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/light.jpg | height=200)
+  ![](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/dark.jpg | height=200)
 
 There is a demo [here](https://github.com/rafiqulislam21/kanban_board_app/blob/master/demo/ezgif.com-video-to-gif.gif) on how to use it.
 
