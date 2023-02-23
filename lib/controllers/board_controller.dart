@@ -50,7 +50,6 @@ class BoardController extends GetxController {
   Future getColumns() async {
     var columnsStr = await LocalStorageUtil.read(dbName);
     List columns = jsonDecode(columnsStr ?? "[]");
-    print(columns);
     for (var item in columns) {
       columnList.add(BoardModel.fromJson(item));
     }
@@ -164,36 +163,19 @@ class BoardController extends GetxController {
     columnList.refresh();
   }
 
-  Future exportCsv() async {
-    List<String> headerList = ["id", "title"];
-    List columnJson = [];
-    for (BoardModel item in columnList) {
-      columnJson.add(item.toJson());
-    }
+  Future exportCsv({required int columnId}) async {
+    BoardModel currentColumn = columnList.firstWhere((element) => element.id == columnId);
+    Map currentColumnJson = currentColumn.toJson();
 
-    for (var item in columnJson) {
-      List<String> singleKeys = [];
+      List<String> headers = [];
       List<List<String>> listOfLists = [];
-      if (item["tasks"]?.length > 0) {
-        for (var tsk in item["tasks"]) {
-          singleKeys = tsk.keys.toList();
+      if (currentColumnJson["tasks"]?.length > 0) {
+        for (var tsk in currentColumnJson["tasks"]) {
+          headers = tsk.keys.toList();
           List<String> singleValues = tsk.values.toString().replaceAll("(", "").replaceAll(")", "").split(",");
           listOfLists.add(singleValues);
-          //  print(tsk.values.toString().replaceAll("(", "").replaceAll(")", "").split(","));
         }
-        await exportCSV.myCSV(singleKeys, listOfLists);
-        // print(singleKeys);
-        // print(listOfLists);
+        await exportCSV.myCSV(headers, listOfLists);
       }
-    }
-
-    // print(singleValues);
-    // List<List<String>> listOfLists = [];
-    // listOfLists.add(singleValues);
-
-    // print(columnJson[0]["tasks"][0].keys.toList());
-    // print(columnJson[0]["tasks"][0].values.toList());
-    // print(columnJson[0]["tasks"][0].toList());
-    // exportCSV.myCSV(singleKeys, listOfLists);
   }
 }

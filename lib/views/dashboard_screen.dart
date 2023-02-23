@@ -10,37 +10,15 @@ import 'package:kanban_board_app/views/components/column_add_edit.dart';
 import 'package:kanban_board_app/views/components/delete_dialog.dart';
 import 'package:kanban_board_app/views/components/task_add_edit.dart';
 import 'package:kanban_board_app/views/widgets/custom_app_bar.dart';
-import 'package:kanban_board_app/views/widgets/custom_drawer.dart';
 import 'package:kanban_board_app/views/widgets/custom_icon_button.dart';
 import 'package:kanban_board_app/views/widgets/empty_widget.dart';
 import 'package:kanban_board_app/views/widgets/task_card.dart';
 
+class DashboardScreen extends StatelessWidget {
+  DashboardScreen({Key? key}) : super(key: key);
 
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
-
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
   BoardViewController boardViewController = BoardViewController();
   final boardController = Get.put(BoardController());
-  List<String> headerList = [];
-  List<List<String>> listOfLists =
-      []; //Outter List which contains the data List
-  List<String> data1 = [
-    '1',
-    'Bilal Saeed',
-    '1374934',
-    '912839812'
-  ]; //Inner list which contains Data i.e Row
-  List<String> data2 = [
-    '2',
-    'Ahmar',
-    '21341234',
-    '192834821'
-  ]; //Inner list which contains Data i.e Row
 
   Future<bool> _onWillPop(BuildContext context) async {
     bool? exitResult = await showDialog(
@@ -74,25 +52,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   @override
-  void initState() {
-    headerList.add('No.');
-    headerList.add('title');
-    // headerList.add('Mobile');
-    // headerList.add('ID Number');
-
-    listOfLists.add(data1);
-    listOfLists.add(data2);
-
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () => _onWillPop(context),
         child: Scaffold(
           appBar: const CustomAppBar(),
-          endDrawer: const CustomDrawer(),
           body: Obx(
             () => boardController.columnList.isEmpty
                 ? const EmptyWidget()
@@ -133,40 +97,78 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     );
                                   },
                                 ),
-                                CustomIconButton(
-                                  icon: Icons.edit,
-                                  height: 30,
-                                  width: 30,
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return ColumnAddEdit(
-                                          column: col,
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                                CustomIconButton(
-                                  icon: Icons.delete_forever,
-                                  height: 30,
-                                  width: 30,
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return DeleteDialog(
-                                          title:
-                                              "This column will deleted forever including tasks.",
-                                          onSuccess: () async {
-                                            await boardController
-                                                .deleteColumn(col.id!);
-                                            Navigator.pop(context);
+                                PopupMenuButton<int>(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                      value: 1,
+                                      child: columnMenuItem(
+                                          icon: Icons.ios_share_rounded,
+                                          title: "Export CSV"),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 2,
+                                      child: columnMenuItem(
+                                          icon: Icons.edit,
+                                          title: "Edit Column"),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 3,
+                                      child: columnMenuItem(
+                                          icon: Icons.delete_forever,
+                                          title: "Delete Column"),
+                                    ),
+                                  ],
+                                  offset: const Offset(-10, 40),
+                                  elevation: 5,
+                                  tooltip: "Other actions",
+                                  onSelected: (value) async {
+                                    if (value == 1) {
+                                      //EXPORT csv
+                                      final snackBar = SnackBar(
+                                        content: const Text(
+                                            'Exporting CSV file into local storage!'),
+                                        action: SnackBarAction(
+                                          label: 'ok',
+                                          onPressed: () {
+                                            // Some code to undo the change.
                                           },
-                                        );
-                                      },
-                                    );
+                                        ),
+                                      );
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(snackBar);
+
+                                      await boardController.exportCsv(
+                                          columnId: col.id!);
+                                    } else if (value == 2) {
+                                      //Edit column
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return ColumnAddEdit(
+                                            column: col,
+                                          );
+                                        },
+                                      );
+                                    } else if (value == 3) {
+                                      // delete column
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return DeleteDialog(
+                                            title:
+                                                "This column will deleted forever including tasks.",
+                                            onSuccess: () async {
+                                              await boardController
+                                                  .deleteColumn(col.id!);
+                                              Navigator.pop(context);
+                                            },
+                                          );
+                                        },
+                                      );
+                                    }
                                   },
                                 ),
                               ],
@@ -217,16 +219,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               FloatingActionButton(
-                      key: UniqueKey(),
-                      heroTag: "btn-export",
-                      mini: true,
-                      onPressed: () {
-                        // print(listOfLists);
-                        // exportCSV.myCSV(headerList, listOfLists);
-                        boardController.exportCsv();
-                      },
-                      child: const Icon(Icons.ios_share_rounded)),
-              FloatingActionButton(
                 key: UniqueKey(),
                 heroTag: "btn-add",
                 tooltip: "Add column",
@@ -244,5 +236,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ));
+  }
+
+  Row columnMenuItem({required IconData icon, required String title}) {
+    return Row(
+      children: [
+        Icon(icon),
+        const SizedBox(
+          width: 5,
+        ),
+        Text(title)
+      ],
+    );
   }
 }

@@ -18,9 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Kanban Board',
-      // your translations
       locale: const Locale('en', 'US'),
-      // translations will be displayed in that locale
       fallbackLocale: const Locale('en', 'US'),
       theme: ThemeData(
           visualDensity: VisualDensity.adaptivePlatformDensity,

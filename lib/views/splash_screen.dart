@@ -67,7 +67,7 @@ class SplashScreen extends StatelessWidget {
     await 2.delay();
     Get.off(
       duration: const Duration(seconds: 1),
-      const DashboardScreen(),
+      DashboardScreen(),
     );
   }
 }

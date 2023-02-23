@@ -69,7 +69,6 @@ class _TaskCardState extends State<TaskCard> {
 
   @override
   Widget build(BuildContext context) {
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -80,10 +79,8 @@ class _TaskCardState extends State<TaskCard> {
               alignment: Alignment.center,
               child: ConfettiWidget(
                 confettiController: _controllerCenter,
-                blastDirectionality: BlastDirectionality
-                    .explosive,
-                shouldLoop:
-                false,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
                 numberOfParticles: 5,
                 createParticlePath: drawStar, // define a custom shape/path.
               ),
@@ -102,7 +99,9 @@ class _TaskCardState extends State<TaskCard> {
                   children: [
                     CustomIconButton(
                       icon: Icons.done_all_rounded,
-                      color: widget.task.completedAt == null ? Colors.grey : Colors.green,
+                      color: widget.task.completedAt == null
+                          ? Colors.grey
+                          : Colors.green,
                       onPressed: () {
                         _controllerCenter.play();
                         boardController.completeTask(task: widget.task);
@@ -131,8 +130,9 @@ class _TaskCardState extends State<TaskCard> {
                               return DeleteDialog(
                                 title: "This task will deleted forever.",
                                 onSuccess: () async {
-                                  await boardController
-                                      .deleteTask(columnId: widget.col.id!,taskId: widget.task.id!);
+                                  await boardController.deleteTask(
+                                      columnId: widget.col.id!,
+                                      taskId: widget.task.id!);
                                   Navigator.pop(context);
                                 },
                               );
